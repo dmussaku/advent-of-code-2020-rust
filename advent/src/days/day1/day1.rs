@@ -34,8 +34,7 @@ pub fn read_numbers_from_file(path: &str) -> Vec<i32>{
     numbers
 }
 
-pub fn run(input_numbers: Vec<i32>) -> i32 {
-
+pub fn run_part_1(input_numbers: Vec<i32>) -> i32 {
     // We create a second vector by subtracting values from 2020
     let transformed_numbers: Vec<_> = input_numbers.iter()
         .map(|val| 2020 - *val)
@@ -43,31 +42,37 @@ pub fn run(input_numbers: Vec<i32>) -> i32 {
 
     // Transform to HashSet
     let input_set: HashSet<i32> = HashSet::from_iter(input_numbers.iter().cloned());
-    println!("Input Set");
-    for num in &input_set {
-        print!("{} ", num)
-    }
-    println!();
-
-    println!("Transformed set");
     let transformed_set: HashSet<i32> = HashSet::from_iter(transformed_numbers.iter().cloned());
-    for num in &transformed_set{
-        print!("{} ", num)
-    }
-    println!();
 
     let _intersection: HashSet<_> = input_set.intersection(&transformed_set).collect();
-    println!("Intersection");
-
-    for num in &_intersection{
-        print!("{} ", num);
-    }
-    println!();
 
     let result: i32 = _intersection.iter()
         .fold(1, |acc, val| acc * **val);
 
-    println!("Result = {}", result);
+    result
+}
+
+pub fn run_part_2(input_numbers: Vec<i32>) -> i32{
+    // We create a second vector by subtracting values from 2020
+    let transformed_numbers: Vec<i32> = input_numbers.iter()
+        .map(|val| 2020 - *val)
+        .collect();
+    let transformed_set: HashSet<i32> = HashSet::from_iter(transformed_numbers);
+
+    let mut result_set = HashSet::new();
+    for i in 0..input_numbers.len(){
+        for j in i+1..input_numbers.len(){
+            let sum = input_numbers[i] + input_numbers[j];
+            if sum < 2020{
+                if transformed_set.contains(&sum){
+                    result_set.insert(input_numbers[i]);
+                    result_set.insert(input_numbers[j]);
+                }
+            }
+        }
+    }
+
+    let result = result_set.iter().fold(1, |acc, val| acc * val);
     result
 }
 
@@ -86,8 +91,13 @@ mod tests{
     }
 
     #[test]
-    fn test_run() {
-        assert_eq!(514579, run(vec![1721, 979, 366, 299, 675, 1456]));
+    fn test_run_part_1() {
+        assert_eq!(514579, run_part_1(vec![1721, 979, 366, 299, 675, 1456]));
+    }
+
+    #[test]
+    fn test_run_part2() {
+        assert_eq!(241861950, run_part_2(vec![1721, 979, 366, 299, 675, 1456]));
     }
 }
 
