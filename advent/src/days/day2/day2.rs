@@ -49,12 +49,24 @@ pub fn run(path: &str) -> u16{
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
     #[test]
     fn test_parse_entry(){
         let input_line: Vec<&str> = vec!["1-3", "a:", "abcde"];
 
         assert_eq!((1, 3, 'a', vec!['a', 'b', 'c', 'd', 'e']), parse_entry(input_line));
+    }
+
+    #[rstest]
+    #[case(1, 3, 'a', vec!['a', 'b', 'c', 'd', 'e'], true)]
+    #[case(1, 3, 'b', vec!['c', 'd', 'e', 'f', 'g'], false)]
+    fn test_is_valid_password(#[case] min: u8,
+                              #[case] max: u8,
+                              #[case] required_char: char,
+                              #[case] password: Vec<char>,
+                              #[case] result: bool) {
+        assert_eq!(result, is_valid_password(min, max, required_char, password));
     }
 
     #[test]
