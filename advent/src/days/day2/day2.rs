@@ -1,5 +1,4 @@
 use std::fs;
-// use std::collections::HashSet;
 
 fn parse_entry(line_vec: Vec<&str>) -> (u8, u8, char, Vec<char>){
     // example input: ["1-3", "a:", "abcde"]
@@ -20,14 +19,21 @@ fn parse_entry(line_vec: Vec<&str>) -> (u8, u8, char, Vec<char>){
     (min, max, required_char, password)
 }
 
-fn is_valid_password(min: u8, max: u8, required_char: char, password_vector: Vec<char>) -> bool{
+fn is_valid_password_by_char_count(min: u8, max: u8, required_char: char, password_vector: Vec<char>) -> bool{
     let required_char_num: u8 = password_vector.iter()
         .filter(|&c| *c == required_char).count() as u8;
 
     required_char_num >= min && required_char_num <= max
 }
 
-pub fn run(path: &str) -> u16{
+fn is_valid_password_by_char_pos(first_pos: u8, last_pos: u8, required_char: char, password_vector: Vec<char>) -> bool{
+    let is_at_first_pos: bool = password_vector[first_pos as usize - 1] == required_char;
+    let is_at_last_pos: bool = password_vector[last_pos as usize - 1] == required_char;
+
+    is_at_first_pos ^ is_at_last_pos
+}
+
+pub fn run_part1(path: &str) -> u16{
     let contents = fs::read_to_string(path)
         .expect("Something went wrong with a file");
 
@@ -36,12 +42,28 @@ pub fn run(path: &str) -> u16{
         let input_line: Vec<&str> = line.split_whitespace().collect();
         // println!("{:?}", &input_line);
         let (min, max, required_char, password) = parse_entry(input_line);
-        let is_valid_password: bool = is_valid_password(min, max, required_char, password);
+        let is_valid_password: bool = is_valid_password_by_char_count(min, max, required_char, password);
         if is_valid_password == true{
             valid_password_count += 1;
         }
     }
 
+    valid_password_count
+}
+
+pub fn run_part2(path: &str) -> u16 {
+    let contents = fs::read_to_string(path)
+        .expect("Something went wrong with a file");
+
+    let mut valid_password_count: u16 = 0;
+    for line in contents.lines(){
+        let input_line: Vec<&str> = line.split_whitespace().collect();
+        let (first_pos, last_pos, required_char, password) = parse_entry(input_line);
+        let is_valid_password: bool = is_valid_password_by_char_pos(first_pos, last_pos, required_char, password);
+        if is_valid_password == true {
+            valid_password_count += 1
+        }
+    }
     valid_password_count
 }
 
@@ -61,20 +83,40 @@ mod tests {
     #[rstest]
     #[case(1, 3, 'a', vec!['a', 'b', 'c', 'd', 'e'], true)]
     #[case(1, 3, 'b', vec!['c', 'd', 'e', 'f', 'g'], false)]
-    fn test_is_valid_password(#[case] min: u8,
+    fn test_is_valid_password_by_char_count(#[case] min: u8,
                               #[case] max: u8,
                               #[case] required_char: char,
                               #[case] password: Vec<char>,
                               #[case] result: bool) {
-        assert_eq!(result, is_valid_password(min, max, required_char, password));
+        assert_eq!(result, is_valid_password_by_char_count(min, max, required_char, password));
+    }
+
+    #[rstest]
+    #[case(1, 3, 'a', vec!['a', 'b', 'c', 'd', 'e'], true)]
+    #[case(1, 3, 'b', vec!['c', 'd', 'e', 'f', 'g'], false)]
+    fn test_is_valid_password_by_char_pos(#[case] min: u8,
+                              #[case] max: u8,
+                              #[case] required_char: char,
+                              #[case] password: Vec<char>,
+                              #[case] result: bool) {
+        assert_eq!(result, is_valid_password_by_char_pos(min, max, required_char, password));
     }
 
     #[test]
-    fn test_run() {
-        let input_numbers = run(
+    fn test_run_part1() {
+        let input_numbers = run_part1(
             "src/days/day2/input_files/test_file.txt"
         );
 
         assert_eq!(2, input_numbers);
+    }
+
+    #[test]
+    fn test_run_part2() {
+        let input_numbers = run_part2(
+            "src/days/day2/input_files/test_file.txt"
+        );
+
+        assert_eq!(1, input_numbers);
     }
 }
